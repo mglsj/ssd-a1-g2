@@ -1,13 +1,20 @@
 {
   pkgs,
+  lib,
   config,
   ...
 }:
 {
-  packages = [ 
-    pkgs.git 
+  packages = [
+    pkgs.git
     pkgs.mongosh
-    pkgs.postgresql 
+    pkgs.postgresql
+  ];
+
+  env.LD_LIBRARY_PATH = lib.makeLibraryPath [
+    pkgs.zlib
+    pkgs.stdenv.cc.cc.lib
+    pkgs.openssl
   ];
 
   languages.python = {
@@ -25,5 +32,6 @@
     enable = true;
     lsp.enable = true;
     directory = "./mongo";
+    npm.enable = true;
   };
 }

@@ -6,6 +6,7 @@ node_modules/
 venv/
 __pycache__/
 *.pyc
+.mypy_cache
 
 # Raw data 
 *.csv
