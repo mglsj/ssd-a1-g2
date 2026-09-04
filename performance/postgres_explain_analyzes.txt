@@ -1,0 +1,63 @@
+                                                                                                         QUERY PLAN                                                                                                          
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=2301.21..2307.38 rows=2467 width=164) (actual time=151.177..153.487 rows=57536.00 loops=1)
+   Sort Key: moving_average_calc.booking_date DESC, (dense_rank() OVER w1), moving_average_calc.property_id
+   Sort Method: external merge  Disk: 3872kB
+   Buffers: shared hit=51, temp read=1201 written=1204
+   CTE daily_property_revenue
+     ->  HashAggregate  (cost=319.65..407.61 rows=5026 width=52) (actual time=2.146..2.829 rows=4914.00 loops=1)
+           Group Key: b.property_id, ((b.created_at AT TIME ZONE 'UTC'::text))::date
+           Batches: 1  Memory Usage: 2193kB
+           Buffers: shared hit=45
+           ->  Index Only Scan using idx_bookings_created_at_property on bookings b  (cost=0.31..281.96 rows=5026 width=27) (actual time=0.017..0.761 rows=5079.00 loops=1)
+                 Index Cond: ((created_at >= (((CURRENT_DATE - 36))::timestamp without time zone AT TIME ZONE 'UTC'::text)) AND (created_at < (((CURRENT_DATE + 1))::timestamp without time zone AT TIME ZONE 'UTC'::text)))
+                 Heap Fetches: 12
+                 Index Searches: 1
+                 Buffers: shared hit=45
+   ->  WindowAgg  (cost=1699.12..1754.61 rows=2467 width=164) (actual time=105.017..122.931 rows=57536.00 loops=1)
+         Window: w1 AS (PARTITION BY moving_average_calc.booking_date ORDER BY moving_average_calc.moving_avg_7d ROWS UNBOUNDED PRECEDING)
+         Storage: Memory  Maximum Storage: 17kB
+         Buffers: shared hit=48, temp read=717 written=719
+         ->  Sort  (cost=1699.10..1705.27 rows=2467 width=124) (actual time=105.008..109.188 rows=57536.00 loops=1)
+               Sort Key: moving_average_calc.booking_date, moving_average_calc.moving_avg_7d DESC
+               Sort Method: external merge  Disk: 3176kB
+               Buffers: shared hit=48, temp read=717 written=719
+               ->  Subquery Scan on moving_average_calc  (cost=1093.58..1560.10 rows=2467 width=124) (actual time=27.325..78.847 rows=57536.00 loops=1)
+                     Filter: (moving_average_calc.booking_date >= (CURRENT_DATE - 30))
+                     Rows Removed by Filter: 11136
+                     Buffers: shared hit=45, temp read=320 written=321
+                     ->  WindowAgg  (cost=1093.58..1430.60 rows=7400 width=124) (actual time=27.315..74.759 rows=68672.00 loops=1)
+                           Window: w AS (PARTITION BY daily_property_revenue.property_id ORDER BY ((g.d)::date) RANGE BETWEEN '6 days'::interval PRECEDING AND CURRENT ROW)
+                           Storage: Memory  Maximum Storage: 17kB
+                           Buffers: shared hit=45, temp read=320 written=321
+                           ->  Merge Left Join  (cost=1093.54..1245.60 rows=7400 width=52) (actual time=27.300..36.771 rows=68672.00 loops=1)
+                                 Merge Cond: ((daily_property_revenue.property_id = dpr.property_id) AND (((g.d)::date) = dpr.booking_date))
+                                 Buffers: shared hit=45, temp read=320 written=321
+                                 ->  Sort  (cost=684.04..702.54 rows=7400 width=24) (actual time=26.305..29.848 rows=68672.00 loops=1)
+                                       Sort Key: daily_property_revenue.property_id, ((g.d)::date)
+                                       Sort Method: external merge  Disk: 2560kB
+                                       Buffers: shared hit=45, temp read=320 written=321
+                                       ->  Nested Loop  (cost=113.10..208.47 rows=7400 width=24) (actual time=3.921..10.328 rows=68672.00 loops=1)
+                                             Buffers: shared hit=45
+                                             ->  Function Scan on generate_series g  (cost=0.02..0.39 rows=37 width=8) (actual time=0.009..0.012 rows=37.00 loops=1)
+                                             ->  Materialize  (cost=113.08..116.08 rows=200 width=16) (actual time=0.106..0.156 rows=1856.00 loops=37)
+                                                   Storage: Memory  Maximum Storage: 89kB
+                                                   Buffers: shared hit=45
+                                                   ->  HashAggregate  (cost=113.08..115.08 rows=200 width=16) (actual time=3.907..4.005 rows=1856.00 loops=1)
+                                                         Group Key: daily_property_revenue.property_id
+                                                         Batches: 1  Memory Usage: 169kB
+                                                         Buffers: shared hit=45
+                                                         ->  CTE Scan on daily_property_revenue  (cost=0.00..100.52 rows=5026 width=16) (actual time=2.148..3.378 rows=4914.00 loops=1)
+                                                               Storage: Memory  Maximum Storage: 333kB
+                                                               Buffers: shared hit=45
+                                 ->  Sort  (cost=409.50..422.06 rows=5026 width=52) (actual time=0.990..1.222 rows=4914.00 loops=1)
+                                       Sort Key: dpr.property_id, dpr.booking_date
+                                       Sort Method: quicksort  Memory: 423kB
+                                       ->  CTE Scan on daily_property_revenue dpr  (cost=0.00..100.52 rows=5026 width=52) (actual time=0.001..0.210 rows=4914.00 loops=1)
+                                             Storage: Memory  Maximum Storage: 333kB
+ Planning:
+   Buffers: shared hit=250 read=19 dirtied=6
+ Planning Time: 0.744 ms
+ Execution Time: 156.343 ms
+(59 rows)
+

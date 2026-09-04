@@ -22,15 +22,6 @@ interface CollectionSchemas {
   PropertyAmenities: CollectionDocumentOf<typeof PropertyAmenitiesSchema>;
   SearchSessions: CollectionDocumentOf<typeof SearchSessionsSchema>;
   PropertyReviews: CollectionDocumentOf<typeof PropertyReviewsSchema>;
-
-  // SearchSessions and PropertyReviews are commented out in
-  // mongo/01_collections_and_indexes.js. Uncomment them there, hoist each
-  // $jsonSchema into a `const ...Schema` as above, then list them here:
-  //
-  //   SearchSessions: CollectionDocumentOf<typeof SearchSessionsSchema>;
-  //
-  // Until then both resolve to an unchecked `Collection`, which is why
-  // db.PropertyReviews.insertOne({ ... }) currently accepts anything.
 }
 
 /**

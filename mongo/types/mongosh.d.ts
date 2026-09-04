@@ -136,6 +136,26 @@ interface AggregationCursor<TSchema = MongoDocument> {
 
 type ExplainVerbosity = "queryPlanner" | "executionStats" | "allPlansExecution";
 
+/**
+ * The handle returned by `collection.explain(verbosity)`.
+ *
+ * It mirrors the collection's read/write surface, but every method runs the
+ * operation in explain mode and returns the plan document instead of results.
+ * Modelling it as its own interface is what stops
+ * `db.c.explain("executionStats").aggregate(p)` from degrading to `any` --
+ * which would silently accept `.toArray()` on the end of it, a call that does
+ * not exist on an explain result.
+ */
+interface ExplainableCollection {
+  find(filter?: MongoQuery, projection?: MongoQuery): MongoDocument;
+  aggregate(pipeline: MongoQuery[], options?: MongoQuery): MongoDocument;
+  count(filter?: MongoQuery): MongoDocument;
+  distinct(field: string, filter?: MongoQuery): MongoDocument;
+  findAndModify(options: MongoQuery): MongoDocument;
+  update(filter: MongoQuery, update: MongoQuery, options?: UpdateOptions): MongoDocument;
+  remove(filter: MongoQuery, options?: MongoQuery): MongoDocument;
+}
+
 // ---------------------------------------------------------------------------
 // Write and index results
 // ---------------------------------------------------------------------------
@@ -270,7 +290,7 @@ interface Collection<TSchema = MongoDocument> {
   drop(options?: MongoQuery): boolean;
   stats(options?: MongoQuery): MongoDocument;
   getName(): string;
-  explain(verbosity?: ExplainVerbosity): MongoDocument;
+  explain(verbosity?: ExplainVerbosity): ExplainableCollection;
 }
 
 // ---------------------------------------------------------------------------
@@ -336,6 +356,22 @@ declare var db: Database;
 
 /** Switches the active database, as the bare `use <name>` shell command does. */
 declare function use(name: string): void;
+
+/**
+ * Opt-in flag for the workflow scripts, injected from the command line:
+ *
+ *     mongosh --eval "EXPLAIN=true" -f mongo/02_workflow3_geonear.js
+ *
+ * When set, a workflow prints its `explain("executionStats")` plan instead of
+ * its results, which is how performance/mongo_execution_stats.json is produced.
+ *
+ * Declared as possibly-undefined because the usual invocation does NOT set it.
+ * Guard every read with `typeof EXPLAIN !== "undefined"`: reading an
+ * identifier that was never declared is a ReferenceError in JavaScript
+ * whether or not the script is in strict mode, and this declaration only
+ * silences the type checker, not the runtime.
+ */
+declare var EXPLAIN: boolean | undefined;
 
 declare function print(...args: any[]): void;
 declare function printjson(value: any): void;

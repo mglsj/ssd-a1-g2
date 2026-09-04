@@ -1,0 +1,14 @@
+# The working tree is edited on Windows but executed inside a Linux dev
+# container that bind-mounts it directly. With core.autocrlf=true and no rules
+# here, git rewrites checked-out text files to CRLF, and a CRLF shell script
+# fails in the container with "$'\r': command not found" -- likewise psql -f on
+# a .sql file and mongosh on a .js file.
+#
+# Normalise to LF in the repository AND in the working tree.
+* text=auto eol=lf
+
+# Binary files must never be touched by end-of-line conversion.
+*.png binary
+*.jpg binary
+*.pdf binary
+*.zip binary

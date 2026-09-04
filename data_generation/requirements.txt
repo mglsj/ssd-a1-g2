@@ -10,5 +10,5 @@ pymongo==4.17.0
     # via data-generation
 python-dotenv==1.2.3
     # via data-generation
-tzdata==2026.3 ; sys_platform == 'win32'
+tzdata==2026.3
     # via faker

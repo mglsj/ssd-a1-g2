@@ -28,6 +28,10 @@
     // `process` and `Buffer` are not what these scripts should reach for.
     "types": []
   },
-  "include": ["mongo/**/*.js", "types/**/*.d.ts"],
+  // Paths are resolved relative to THIS file's directory, which is already
+  // mongo/. "mongo/**/*.js" resolved to mongo/mongo/**/*.js and matched
+  // nothing, so the scripts were never in the program and every reference to
+  // a schema constant from types/collections.d.ts failed to resolve.
+  "include": ["*.js", "types/**/*.d.ts"],
   "exclude": ["node_modules"]
 }

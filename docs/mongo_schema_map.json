@@ -1,0 +1,186 @@
+{
+  "project": "Project 3 - StaySpot: Vacation Rental & Experiences",
+  "database": "app",
+  "note": "Document structure and validation models for the MongoDB side. This file is documentation: the executable source of truth is mongo/01_collections_and_indexes.js, and the TypeScript document types in mongo/types/ are derived from those same validators so the two cannot drift.",
+  "cross_store_keys": {
+    "convention": "guest_id and property_id are the PostgreSQL UUID primary keys, stored as BSON binData subtype 4 (UUID).",
+    "enforcement": "$jsonSchema can require bsonType binData but cannot assert a byte length, so each validator pairs the schema with an $expr checking { $binarySize: '$<field>' } == 16.",
+    "seeding": "data_generation/mongo_seeder.py reads these ids out of PostgreSQL rather than generating them, so every reference resolves against the relational store."
+  },
+  "collections": {
+    "PropertyAmenities": {
+      "purpose": "Flexible amenity catalogue per property. This is the collection that justifies a document store: amenity sets vary by property type and no fixed column list covers them.",
+      "relational_counterpart": "properties (PostgreSQL)",
+      "validation": {
+        "level": "strict",
+        "action": "error",
+        "additionalProperties": true,
+        "additionalProperties_rationale": "Deliberately open. Listing-specific attributes that no schema anticipated (seasonal_notes, licence, and whatever a future listing needs) are the point of this collection. The other two collections are closed."
+      },
+      "required": ["property_id", "updated_at"],
+      "fields": {
+        "property_id": {
+          "bsonType": "binData",
+          "constraint": "$binarySize == 16 (UUID)",
+          "references": "postgres.properties.id"
+        },
+        "amenity_categories": {
+          "bsonType": "array",
+          "description": "Nested catalogue: each element is a category holding its own item list.",
+          "items": {
+            "bsonType": "object",
+            "required": ["category", "items"],
+            "properties": {
+              "category": { "bsonType": "string" },
+              "items": { "bsonType": "array", "items": { "bsonType": "string" } }
+            }
+          }
+        },
+        "house_rules": {
+          "bsonType": "array",
+          "items": { "bsonType": "string" }
+        },
+        "accessibility_features": {
+          "bsonType": "array",
+          "items": { "bsonType": "string" }
+        },
+        "updated_at": { "bsonType": "date" }
+      },
+      "indexes": [
+        {
+          "name": "idx_amenities_property",
+          "keys": { "property_id": 1 },
+          "unique": true,
+          "purpose": "One amenity document per property."
+        }
+      ]
+    },
+
+    "SearchSessions": {
+      "purpose": "Geospatial log of where guests drop pins while searching. Consumed by Workflow 3.",
+      "volume_target": "500,000+ documents",
+      "validation": { "level": "strict", "action": "error" },
+      "required": ["guest_id", "session_id", "location", "created_at"],
+      "fields": {
+        "guest_id": {
+          "bsonType": "binData",
+          "constraint": "$binarySize == 16 (UUID)",
+          "references": "postgres.guests.id"
+        },
+        "session_id": {
+          "bsonType": "binData",
+          "constraint": "$binarySize == 16 (UUID)"
+        },
+        "location": {
+          "bsonType": "object",
+          "format": "GeoJSON Point",
+          "required": ["type", "coordinates"],
+          "properties": {
+            "type": { "enum": ["Point"] },
+            "coordinates": {
+              "bsonType": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": { "bsonType": "number" },
+              "order": "[longitude, latitude] - GeoJSON order, the reverse of how coordinates are usually spoken"
+            }
+          }
+        },
+        "search_filters": {
+          "bsonType": "object",
+          "optional": true,
+          "properties": {
+            "guests_count": { "bsonType": "int", "minimum": 1, "maximum": 16 },
+            "max_price": { "bsonType": "number", "minimum": 0 },
+            "min_bedrooms": { "bsonType": "int", "minimum": 0 },
+            "requires_pool": { "bsonType": "bool" }
+          }
+        },
+        "created_at": { "bsonType": "date" }
+      },
+      "indexes": [
+        {
+          "name": "idx_sessions_geo_recent",
+          "keys": { "location": "2dsphere", "created_at": -1 },
+          "purpose": "Satisfies the brief's 2dsphere requirement. Compound with created_at so $geoNear's recency predicate is served by the same scan instead of re-checked per candidate document."
+        },
+        {
+          "name": "ttl_sessions_created_at",
+          "keys": { "created_at": 1 },
+          "expireAfterSeconds": 7200,
+          "purpose": "2-hour TTL, per the brief.",
+          "operational_note": "The TTL monitor runs every 60 seconds and deletes anything older than 7200s. Seeded pings are therefore timestamped inside the last 110 minutes, and the collection drains itself roughly two hours after seeding. Re-seed immediately before capturing explain output."
+        }
+      ]
+    },
+
+    "PropertyReviews": {
+      "purpose": "Structured guest reviews with ratings and location tags. Consumed by Workflow 4.",
+      "volume_target": "150,000 documents",
+      "validation": { "level": "strict", "action": "error" },
+      "required": ["property_id", "guest_id", "rating", "created_at"],
+      "fields": {
+        "property_id": {
+          "bsonType": "binData",
+          "constraint": "$binarySize == 16 (UUID)",
+          "references": "postgres.properties.id"
+        },
+        "guest_id": {
+          "bsonType": "binData",
+          "constraint": "$binarySize == 16 (UUID)",
+          "references": "postgres.guests.id"
+        },
+        "rating": {
+          "bsonType": "int",
+          "minimum": 1,
+          "maximum": 5,
+          "note": "bsonType int is a 32-bit integer, not 'any number'. A fractional rating such as 4.8 is a BSON double and is rejected."
+        },
+        "review_text": { "bsonType": "string", "optional": true },
+        "location_tags": {
+          "bsonType": "array",
+          "items": { "bsonType": "string" },
+          "optional": true,
+          "note": "Unwound by Workflow 4 to rank tag frequency."
+        },
+        "created_at": { "bsonType": "date" }
+      },
+      "indexes": [
+        {
+          "name": "idx_reviews_property_recent",
+          "keys": { "property_id": 1, "created_at": -1 },
+          "purpose": "Per-property review history, newest first."
+        },
+        {
+          "name": "idx_reviews_recent",
+          "keys": { "created_at": -1 },
+          "purpose": "Serves the $match that fronts the Workflow 4 $facet. A $facet's sub-pipelines cannot use an index - they consume whatever the preceding stage streams them - so this is the only stage in that pipeline that can avoid a COLLSCAN."
+        },
+        {
+          "name": "idx_reviews_rating_recent",
+          "keys": { "rating": 1, "created_at": -1 },
+          "purpose": "Rating-scoped reads."
+        }
+      ]
+    }
+  },
+
+  "workflows": {
+    "workflow_3_geonear": {
+      "script": "mongo/02_workflow3_geonear.js",
+      "collection": "SearchSessions",
+      "description": "Clusters recent search sessions within a 5 km radius of a coordinate into 1 km concentric rings.",
+      "stages": ["$geoNear", "$project", "$bucket", "$set", "$unset", "$sort"],
+      "index_used": "idx_sessions_geo_recent",
+      "notes": "$geoNear must be the first stage of the pipeline; it is the only stage that can open an index cursor."
+    },
+    "workflow_4_facet": {
+      "script": "mongo/03_workflow4_facet.js",
+      "collection": "PropertyReviews",
+      "description": "Single-pass review analytics: rating distribution across all 5 star levels with percentages, top location tags via $unwind, and the overall average rating.",
+      "stages": ["$match", "$facet", "$set"],
+      "index_used": "idx_reviews_recent",
+      "notes": "The $match window must stay selective for the index to be worth using. Widened to cover the whole collection, the planner correctly reverts to a COLLSCAN."
+    }
+  }
+}

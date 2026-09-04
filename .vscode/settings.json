@@ -1,19 +1,9 @@
 {
     "files.eol": "\n",
     "files.autoSaveWhenNoErrors": true,
-    // --- Type checking for the mongosh scripts in mongo/ ---
-    // Route JS/TS language features through the TypeScript 7 native language
-    // server (typescriptteam.native-preview). This is the setting the
-    // "TypeScript 7: Enable" command toggles; setting it here means the whole
-    // team gets it from the workspace rather than each person's user settings.
     "typescript.experimental.useTsgo": true,
-    // The mongo/ scripts are checked via jsconfig.json (checkJs + strict).
-    // Leaving these on means the squiggles in the editor match what
-    // `npm run typecheck` reports in CI.
     "javascript.validate.enable": true,
     "javascript.preferences.quoteStyle": "double",
-    // Never offer to auto-insert an import into a mongosh script - mongosh has
-    // no module loader, so an added import breaks the script at runtime.
     "javascript.suggest.autoImports": false,
     "javascript.updateImportsOnFileMove.enabled": "never",
     "pgsql.connections": [

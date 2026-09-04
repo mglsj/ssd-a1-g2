@@ -1,0 +1,675 @@
+true
+{
+  explainVersion: '1',
+  stages: [
+    {
+      '$cursor': {
+        queryPlanner: {
+          namespace: 'app.PropertyReviews',
+          parsedQuery: {
+            created_at: {
+              '$gte': ISODate('2026-08-05T02:29:34.997Z')
+            }
+          },
+          indexFilterSet: false,
+          queryHash: '2E33F72F',
+          planCacheShapeHash: '2E33F72F',
+          planCacheKey: '6B265814',
+          optimizationTimeMillis: 0,
+          maxIndexedOrSolutionsReached: false,
+          maxIndexedAndSolutionsReached: false,
+          maxScansToExplodeReached: false,
+          prunedSimilarIndexes: false,
+          winningPlan: {
+            isCached: false,
+            stage: 'PROJECTION_SIMPLE',
+            transformBy: {
+              location_tags: 1,
+              rating: 1,
+              _id: 0
+            },
+            inputStage: {
+              stage: 'FETCH',
+              inputStage: {
+                stage: 'IXSCAN',
+                keyPattern: {
+                  created_at: -1
+                },
+                indexName: 'idx_reviews_recent',
+                isMultiKey: false,
+                multiKeyPaths: {
+                  created_at: []
+                },
+                isUnique: false,
+                isSparse: false,
+                isPartial: false,
+                indexVersion: 2,
+                direction: 'forward',
+                indexBounds: {
+                  created_at: [
+                    '[new Date(9223372036854775807), new Date(1785896974997)]'
+                  ]
+                }
+              }
+            }
+          },
+          rejectedPlans: []
+        },
+        executionStats: {
+          executionSuccess: true,
+          nReturned: 12265,
+          executionTimeMillis: 34,
+          totalKeysExamined: 12265,
+          totalDocsExamined: 12265,
+          executionStages: {
+            isCached: false,
+            stage: 'PROJECTION_SIMPLE',
+            nReturned: 12265,
+            executionTimeMillisEstimate: 6,
+            works: 12266,
+            advanced: 12265,
+            needTime: 0,
+            needYield: 0,
+            saveState: 10,
+            restoreState: 9,
+            isEOF: 1,
+            transformBy: {
+              location_tags: 1,
+              rating: 1,
+              _id: 0
+            },
+            inputStage: {
+              stage: 'FETCH',
+              nReturned: 12265,
+              executionTimeMillisEstimate: 6,
+              works: 12266,
+              advanced: 12265,
+              needTime: 0,
+              needYield: 0,
+              saveState: 10,
+              restoreState: 9,
+              isEOF: 1,
+              docsExamined: 12265,
+              alreadyHasObj: 0,
+              inputStage: {
+                stage: 'IXSCAN',
+                nReturned: 12265,
+                executionTimeMillisEstimate: 1,
+                works: 12266,
+                advanced: 12265,
+                needTime: 0,
+                needYield: 0,
+                saveState: 10,
+                restoreState: 9,
+                isEOF: 1,
+                keyPattern: {
+                  created_at: -1
+                },
+                indexName: 'idx_reviews_recent',
+                isMultiKey: false,
+                multiKeyPaths: {
+                  created_at: []
+                },
+                isUnique: false,
+                isSparse: false,
+                isPartial: false,
+                indexVersion: 2,
+                direction: 'forward',
+                indexBounds: {
+                  created_at: [
+                    '[new Date(9223372036854775807), new Date(1785896974997)]'
+                  ]
+                },
+                keysExamined: 12265,
+                seeks: 1,
+                dupsTested: 0,
+                dupsDropped: 0
+              }
+            }
+          }
+        }
+      },
+      nReturned: Long('12265'),
+      executionTimeMillisEstimate: Long('15')
+    },
+    {
+      '$facet': {
+        rating_distribution: [
+          {
+            '$internalFacetTeeConsumer': {},
+            nReturned: Long('12265'),
+            executionTimeMillisEstimate: Long('15')
+          },
+          {
+            '$group': {
+              _id: '$rating',
+              count: {
+                '$sum': {
+                  '$const': 1
+                }
+              },
+              '$willBeMerged': false
+            },
+            maxAccumulatorMemoryUsageBytes: {
+              count: Long('880')
+            },
+            totalOutputDataSizeBytes: Long('1185'),
+            usedDisk: false,
+            spills: Long('0'),
+            spilledDataStorageSize: Long('0'),
+            spilledBytes: Long('0'),
+            spilledRecords: Long('0'),
+            nReturned: Long('5'),
+            executionTimeMillisEstimate: Long('15')
+          },
+          {
+            '$sort': {
+              sortKey: {
+                _id: 1
+              }
+            },
+            totalDataSizeSortedBytesEstimate: Long('1225'),
+            usedDisk: false,
+            spills: Long('0'),
+            spilledDataStorageSize: Long('0'),
+            nReturned: Long('5'),
+            executionTimeMillisEstimate: Long('15')
+          }
+        ],
+        top_tags: [
+          {
+            '$internalFacetTeeConsumer': {},
+            nReturned: Long('12265'),
+            executionTimeMillisEstimate: Long('0')
+          },
+          {
+            '$unwind': {
+              path: '$location_tags'
+            },
+            nReturned: Long('27759'),
+            executionTimeMillisEstimate: Long('0')
+          },
+          {
+            '$group': {
+              _id: '$location_tags',
+              count: {
+                '$sum': {
+                  '$const': 1
+                }
+              },
+              '$willBeMerged': false
+            },
+            maxAccumulatorMemoryUsageBytes: {
+              count: Long('2464')
+            },
+            totalOutputDataSizeBytes: Long('3550'),
+            usedDisk: false,
+            spills: Long('0'),
+            spilledDataStorageSize: Long('0'),
+            spilledBytes: Long('0'),
+            spilledRecords: Long('0'),
+            nReturned: Long('14'),
+            executionTimeMillisEstimate: Long('10')
+          },
+          {
+            '$sort': {
+              sortKey: {
+                count: -1,
+                _id: 1
+              },
+              limit: Long('10')
+            },
+            totalDataSizeSortedBytesEstimate: Long('3476'),
+            usedDisk: false,
+            spills: Long('0'),
+            spilledDataStorageSize: Long('0'),
+            nReturned: Long('10'),
+            executionTimeMillisEstimate: Long('10')
+          },
+          {
+            '$project': {
+              count: true,
+              tag: '$_id',
+              _id: false
+            },
+            nReturned: Long('10'),
+            executionTimeMillisEstimate: Long('10')
+          }
+        ],
+        overall: [
+          {
+            '$internalFacetTeeConsumer': {},
+            nReturned: Long('12265'),
+            executionTimeMillisEstimate: Long('0')
+          },
+          {
+            '$group': {
+              _id: {
+                '$const': null
+              },
+              total_reviews: {
+                '$sum': {
+                  '$const': 1
+                }
+              },
+              average_rating: {
+                '$avg': '$rating'
+              },
+              lowest_rating: {
+                '$min': '$rating'
+              },
+              highest_rating: {
+                '$max': '$rating'
+              },
+              '$willBeMerged': false
+            },
+            maxAccumulatorMemoryUsageBytes: {
+              total_reviews: Long('176'),
+              average_rating: Long('152'),
+              lowest_rating: Long('120'),
+              highest_rating: Long('120')
+            },
+            totalOutputDataSizeBytes: Long('333'),
+            usedDisk: false,
+            spills: Long('0'),
+            spilledDataStorageSize: Long('0'),
+            spilledBytes: Long('0'),
+            spilledRecords: Long('0'),
+            nReturned: Long('1'),
+            executionTimeMillisEstimate: Long('0')
+          },
+          {
+            '$project': {
+              total_reviews: true,
+              lowest_rating: true,
+              highest_rating: true,
+              average_rating: {
+                '$round': [
+                  '$average_rating',
+                  {
+                    '$const': 3
+                  }
+                ]
+              },
+              _id: false
+            },
+            nReturned: Long('1'),
+            executionTimeMillisEstimate: Long('0')
+          }
+        ]
+      },
+      nReturned: Long('1'),
+      executionTimeMillisEstimate: Long('25')
+    },
+    {
+      '$set': {
+        overall: {
+          '$ifNull': [
+            {
+              '$first': [
+                '$overall'
+              ]
+            },
+            {
+              '$const': {
+                total_reviews: 0,
+                average_rating: null,
+                lowest_rating: null,
+                highest_rating: null
+              }
+            }
+          ]
+        }
+      },
+      nReturned: Long('1'),
+      executionTimeMillisEstimate: Long('25')
+    },
+    {
+      '$set': {
+        rating_distribution: {
+          '$let': {
+            vars: {
+              buckets: '$rating_distribution',
+              total: '$overall.total_reviews'
+            },
+            in: {
+              '$map': {
+                input: {
+                  '$const': [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                  ]
+                },
+                as: 'star',
+                in: {
+                  '$let': {
+                    vars: {
+                      hit: {
+                        '$first': [
+                          {
+                            '$filter': {
+                              input: '$$buckets',
+                              as: 'bucket',
+                              cond: {
+                                '$eq': [
+                                  '$$bucket._id',
+                                  '$$star'
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    in: {
+                      rating: '$$star',
+                      count: {
+                        '$ifNull': [
+                          '$$hit.count',
+                          {
+                            '$const': 0
+                          }
+                        ]
+                      },
+                      percentage: {
+                        '$cond': [
+                          {
+                            '$gt': [
+                              '$$total',
+                              {
+                                '$const': 0
+                              }
+                            ]
+                          },
+                          {
+                            '$round': [
+                              {
+                                '$multiply': [
+                                  {
+                                    '$divide': [
+                                      {
+                                        '$ifNull': [
+                                          '$$hit.count',
+                                          {
+                                            '$const': 0
+                                          }
+                                        ]
+                                      },
+                                      '$$total'
+                                    ]
+                                  },
+                                  {
+                                    '$const': 100
+                                  }
+                                ]
+                              },
+                              {
+                                '$const': 2
+                              }
+                            ]
+                          },
+                          {
+                            '$const': 0
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      nReturned: Long('1'),
+      executionTimeMillisEstimate: Long('25')
+    },
+    {
+      '$set': {
+        window: {
+          days: {
+            '$const': 30
+          },
+          from: {
+            '$const': ISODate('2026-08-05T02:29:34.997Z')
+          },
+          to: {
+            '$const': ISODate('2026-09-04T02:29:34.999Z')
+          }
+        }
+      },
+      nReturned: Long('1'),
+      executionTimeMillisEstimate: Long('25')
+    }
+  ],
+  queryShapeHash: 'C220583A3EAFD27770FE5BC808779FF6E0F2897444FE87E84B22B207D3AA0F69',
+  serverInfo: {
+    host: '0f3c58accfdb',
+    port: 27017,
+    version: '8.2.12',
+    gitVersion: '0f912e80210b8fdfdcec618b14b6c0fced055cb8'
+  },
+  serverParameters: {
+    internalQueryFacetBufferSizeBytes: 104857600,
+    internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+    internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+    internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+    internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+    internalQueryProhibitBlockingMergeOnMongoS: 0,
+    internalQueryMaxAddToSetBytes: 104857600,
+    internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+    internalQueryFrameworkControl: 'trySbeRestricted',
+    internalQueryPlannerIgnoreIndexWithCollationForRegex: 1
+  },
+  command: {
+    aggregate: 'PropertyReviews',
+    pipeline: [
+      {
+        '$match': {
+          created_at: {
+            '$gte': ISODate('2026-08-05T02:29:34.997Z')
+          }
+        }
+      },
+      {
+        '$facet': {
+          rating_distribution: [
+            {
+              '$group': {
+                _id: '$rating',
+                count: {
+                  '$sum': 1
+                }
+              }
+            },
+            {
+              '$sort': {
+                _id: 1
+              }
+            }
+          ],
+          top_tags: [
+            {
+              '$unwind': '$location_tags'
+            },
+            {
+              '$group': {
+                _id: '$location_tags',
+                count: {
+                  '$sum': 1
+                }
+              }
+            },
+            {
+              '$sort': {
+                count: -1,
+                _id: 1
+              }
+            },
+            {
+              '$limit': 10
+            },
+            {
+              '$project': {
+                _id: 0,
+                tag: '$_id',
+                count: 1
+              }
+            }
+          ],
+          overall: [
+            {
+              '$group': {
+                _id: null,
+                total_reviews: {
+                  '$sum': 1
+                },
+                average_rating: {
+                  '$avg': '$rating'
+                },
+                lowest_rating: {
+                  '$min': '$rating'
+                },
+                highest_rating: {
+                  '$max': '$rating'
+                }
+              }
+            },
+            {
+              '$project': {
+                _id: 0,
+                total_reviews: 1,
+                average_rating: {
+                  '$round': [
+                    '$average_rating',
+                    3
+                  ]
+                },
+                lowest_rating: 1,
+                highest_rating: 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        '$set': {
+          overall: {
+            '$ifNull': [
+              {
+                '$first': '$overall'
+              },
+              {
+                total_reviews: 0,
+                average_rating: null,
+                lowest_rating: null,
+                highest_rating: null
+              }
+            ]
+          }
+        }
+      },
+      {
+        '$set': {
+          rating_distribution: {
+            '$let': {
+              vars: {
+                buckets: '$rating_distribution',
+                total: '$overall.total_reviews'
+              },
+              in: {
+                '$map': {
+                  input: [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                  ],
+                  as: 'star',
+                  in: {
+                    '$let': {
+                      vars: {
+                        hit: {
+                          '$first': {
+                            '$filter': {
+                              input: '$$buckets',
+                              as: 'bucket',
+                              cond: {
+                                '$eq': [
+                                  '$$bucket._id',
+                                  '$$star'
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      },
+                      in: {
+                        rating: '$$star',
+                        count: {
+                          '$ifNull': [
+                            '$$hit.count',
+                            0
+                          ]
+                        },
+                        percentage: {
+                          '$cond': [
+                            {
+                              '$gt': [
+                                '$$total',
+                                0
+                              ]
+                            },
+                            {
+                              '$round': [
+                                {
+                                  '$multiply': [
+                                    {
+                                      '$divide': [
+                                        {
+                                          '$ifNull': [
+                                            '$$hit.count',
+                                            0
+                                          ]
+                                        },
+                                        '$$total'
+                                      ]
+                                    },
+                                    100
+                                  ]
+                                },
+                                2
+                              ]
+                            },
+                            0
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        '$set': {
+          window: {
+            days: 30,
+            from: ISODate('2026-08-05T02:29:34.997Z'),
+            to: '$$NOW'
+          }
+        }
+      }
+    ],
+    allowDiskUse: true,
+    cursor: {},
+    '$db': 'app'
+  },
+  ok: 1
+}

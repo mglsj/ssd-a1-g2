@@ -223,6 +223,16 @@ ROLLBACK;
 \echo '== Test 6: the same guest may hold many CONFIRMED bookings. =='
 \echo '   The index is PARTIAL, so non-CHECKED_IN rows are not indexed at all.'
 
+-- Baseline first: this guest already owns seeded CONFIRMED bookings, so an
+-- absolute count after the insert says nothing. The delta is the assertion.
+SELECT
+    COUNT(*) AS t6_before
+FROM
+    bookings
+WHERE
+    guest_id = :'t5_guest_id'::uuid
+    AND status = 'CONFIRMED' \gset
+
 BEGIN;
 
 INSERT INTO
@@ -244,8 +254,9 @@ SELECT
 FROM
     generate_series(1, 3) AS g (n);
 
+-- Expect exactly 3.
 SELECT
-    COUNT(*) AS three_confirmed_inserted_ok
+    COUNT(*) - :t6_before AS confirmed_rows_added
 FROM
     bookings
 WHERE
