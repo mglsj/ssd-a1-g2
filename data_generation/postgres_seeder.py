@@ -1,10 +1,18 @@
 import os
 import random
 import uuid
-from datetime import timedelta
-from faker import Faker
+from datetime import date, datetime, timedelta
+
 import psycopg2
+from faker import Faker
+from psycopg2.extensions import connection as PgConnection
 from psycopg2.extras import execute_values
+
+# --- Types -----------------------------------------------------------------
+GuestRow = tuple[str, str, float]
+PropertyRow = tuple[str, str, float, float, float]
+BookingRow = tuple[str, str, str, float, str, date, date, datetime]
+AuditRow = tuple[str, str, float, str, float, datetime]
 
 # Configuration
 DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
@@ -21,7 +29,7 @@ NUM_AUDIT_LOGS = 100_000
 
 fake = Faker()
 
-def get_connection():
+def get_connection() -> PgConnection:
     return psycopg2.connect(
         host=DB_HOST,
         port=DB_PORT,
@@ -30,7 +38,7 @@ def get_connection():
         password=DB_PASSWORD
     )
 
-def seed_postgres():
+def seed_postgres() -> None:
     conn = get_connection()
     cursor = conn.cursor()
     print("Connected to PostgreSQL. Starting data seeding...")
@@ -38,8 +46,8 @@ def seed_postgres():
     try:
         # 1. Seed Guests
         print(f"Generating {NUM_GUESTS:,} guests...")
-        guest_ids = [str(uuid.uuid4()) for _ in range(NUM_GUESTS)]
-        guests_data = [
+        guest_ids: list[str] = [str(uuid.uuid4()) for _ in range(NUM_GUESTS)]
+        guests_data: list[GuestRow] = [
             (gid, fake.name(), round(random.uniform(10.0, 5000.0), 2))
             for gid in guest_ids
         ]
@@ -53,8 +61,8 @@ def seed_postgres():
 
         # 2. Seed Properties
         print(f"Generating {NUM_PROPERTIES:,} properties...")
-        property_ids = [str(uuid.uuid4()) for _ in range(NUM_PROPERTIES)]
-        properties_data = [
+        property_ids: list[str] = [str(uuid.uuid4()) for _ in range(NUM_PROPERTIES)]
+        properties_data: list[PropertyRow] = [
             (
                 pid,
                 f"{fake.city()} {random.choice(['Villa', 'Apartment', 'Cabin', 'Studio'])}",
@@ -72,39 +80,30 @@ def seed_postgres():
         )
         conn.commit()
 
-        # Nightly rate per property, so a booking's total_cost is consistent
-        # with how many nights it actually covers.
-        property_prices = {row[0]: row[2] for row in properties_data}
+        property_prices: dict[str, float] = {row[0]: row[2] for row in properties_data}
 
         # 3. Seed Bookings (50,000 required)
         print(f"Generating {NUM_BOOKINGS:,} bookings...")
-        # Note: To avoid violating the active stay partial index (one CHECKED_IN stay per guest),
-        # we assign CHECKED_IN status at most once per unique guest.
-        checked_in_guests = set()
-        bookings_data = []
+        checked_in_guests: set[str] = set()
+        bookings_data: list[BookingRow] = []
 
-        statuses = ['CONFIRMED', 'CHECKED_IN', 'COMPLETED']
-        status_weights = [0.4, 0.1, 0.5]  # Keep CHECKED_IN ratio lower
+        statuses: list[str] = ['CONFIRMED', 'CHECKED_IN', 'COMPLETED']
+        status_weights: list[float] = [0.4, 0.1, 0.5]  #
 
         for _ in range(NUM_BOOKINGS):
             guest_id = random.choice(guest_ids)
             property_id = random.choice(property_ids)
             created_at = fake.date_time_between(start_date='-1y', end_date='now')
 
-            # Stay window: booked 1-60 days ahead, for 1-14 nights.
-            # bookings_stay_window_check requires check_out > check_in, so
-            # nights is never 0.
             nights = random.randint(1, 14)
             check_in_date = created_at.date() + timedelta(days=random.randint(1, 60))
             check_out_date = check_in_date + timedelta(days=nights)
 
-            # bookings_total_cost_check requires a strictly positive charge.
             total_cost = max(
                 round(nights * property_prices[property_id] * random.uniform(0.85, 1.35), 2),
                 0.01
             )
 
-            # Handle status constraint for CHECKED_IN
             selected_status = random.choices(statuses, weights=status_weights)[0]
             if selected_status == 'CHECKED_IN':
                 if guest_id in checked_in_guests:
@@ -137,7 +136,7 @@ def seed_postgres():
 
         # 4. Seed Wallet Audit Logs (100,000 required)
         print(f"Generating {NUM_AUDIT_LOGS:,} wallet audit logs...")
-        audit_data = []
+        audit_data: list[AuditRow] = []
         for _ in range(NUM_AUDIT_LOGS):
             guest_id = random.choice(guest_ids)
             amount_changed = round(random.uniform(5.0, 500.0), 2)

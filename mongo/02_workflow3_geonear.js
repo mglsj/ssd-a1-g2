@@ -7,10 +7,8 @@ const MAX_DISTANCE_METERS = 5000; // 5km
 const RECENCY_WINDOW_MS = 2 * 60 * 60 * 1000;
 
 /**
- * Build the aggregation pipeline
- *
- * @param {number} longitude - Longitude in decimal degrees.
- * @param {number} latitude  - Latitude in decimal degrees.
+ * @param {number} longitude
+ * @param {number} latitude 
  * @returns {MongoQuery[]}
  */
 function buildHotspotPipeline(longitude, latitude) {
