@@ -8,7 +8,7 @@ true
           namespace: 'app.PropertyReviews',
           parsedQuery: {
             created_at: {
-              '$gte': ISODate('2026-08-05T02:29:34.997Z')
+              '$gte': ISODate('2026-08-05T13:33:17.513Z')
             }
           },
           indexFilterSet: false,
@@ -47,7 +47,7 @@ true
                 direction: 'forward',
                 indexBounds: {
                   created_at: [
-                    '[new Date(9223372036854775807), new Date(1785896974997)]'
+                    '[new Date(9223372036854775807), new Date(1785936797513)]'
                   ]
                 }
               }
@@ -57,17 +57,17 @@ true
         },
         executionStats: {
           executionSuccess: true,
-          nReturned: 12265,
+          nReturned: 12153,
           executionTimeMillis: 34,
-          totalKeysExamined: 12265,
-          totalDocsExamined: 12265,
+          totalKeysExamined: 12153,
+          totalDocsExamined: 12153,
           executionStages: {
             isCached: false,
             stage: 'PROJECTION_SIMPLE',
-            nReturned: 12265,
-            executionTimeMillisEstimate: 6,
-            works: 12266,
-            advanced: 12265,
+            nReturned: 12153,
+            executionTimeMillisEstimate: 3,
+            works: 12154,
+            advanced: 12153,
             needTime: 0,
             needYield: 0,
             saveState: 10,
@@ -80,23 +80,23 @@ true
             },
             inputStage: {
               stage: 'FETCH',
-              nReturned: 12265,
-              executionTimeMillisEstimate: 6,
-              works: 12266,
-              advanced: 12265,
+              nReturned: 12153,
+              executionTimeMillisEstimate: 3,
+              works: 12154,
+              advanced: 12153,
               needTime: 0,
               needYield: 0,
               saveState: 10,
               restoreState: 9,
               isEOF: 1,
-              docsExamined: 12265,
+              docsExamined: 12153,
               alreadyHasObj: 0,
               inputStage: {
                 stage: 'IXSCAN',
-                nReturned: 12265,
-                executionTimeMillisEstimate: 1,
-                works: 12266,
-                advanced: 12265,
+                nReturned: 12153,
+                executionTimeMillisEstimate: 0,
+                works: 12154,
+                advanced: 12153,
                 needTime: 0,
                 needYield: 0,
                 saveState: 10,
@@ -117,10 +117,10 @@ true
                 direction: 'forward',
                 indexBounds: {
                   created_at: [
-                    '[new Date(9223372036854775807), new Date(1785896974997)]'
+                    '[new Date(9223372036854775807), new Date(1785936797513)]'
                   ]
                 },
-                keysExamined: 12265,
+                keysExamined: 12153,
                 seeks: 1,
                 dupsTested: 0,
                 dupsDropped: 0
@@ -129,7 +129,7 @@ true
           }
         }
       },
-      nReturned: Long('12265'),
+      nReturned: Long('12153'),
       executionTimeMillisEstimate: Long('15')
     },
     {
@@ -137,7 +137,7 @@ true
         rating_distribution: [
           {
             '$internalFacetTeeConsumer': {},
-            nReturned: Long('12265'),
+            nReturned: Long('12153'),
             executionTimeMillisEstimate: Long('15')
           },
           {
@@ -179,15 +179,15 @@ true
         top_tags: [
           {
             '$internalFacetTeeConsumer': {},
-            nReturned: Long('12265'),
+            nReturned: Long('12153'),
             executionTimeMillisEstimate: Long('0')
           },
           {
             '$unwind': {
               path: '$location_tags'
             },
-            nReturned: Long('27759'),
-            executionTimeMillisEstimate: Long('0')
+            nReturned: Long('27386'),
+            executionTimeMillisEstimate: Long('10')
           },
           {
             '$group': {
@@ -239,8 +239,8 @@ true
         overall: [
           {
             '$internalFacetTeeConsumer': {},
-            nReturned: Long('12265'),
-            executionTimeMillisEstimate: Long('0')
+            nReturned: Long('12153'),
+            executionTimeMillisEstimate: Long('9')
           },
           {
             '$group': {
@@ -276,7 +276,7 @@ true
             spilledBytes: Long('0'),
             spilledRecords: Long('0'),
             nReturned: Long('1'),
-            executionTimeMillisEstimate: Long('0')
+            executionTimeMillisEstimate: Long('9')
           },
           {
             '$project': {
@@ -294,12 +294,12 @@ true
               _id: false
             },
             nReturned: Long('1'),
-            executionTimeMillisEstimate: Long('0')
+            executionTimeMillisEstimate: Long('9')
           }
         ]
       },
       nReturned: Long('1'),
-      executionTimeMillisEstimate: Long('25')
+      executionTimeMillisEstimate: Long('34')
     },
     {
       '$set': {
@@ -322,7 +322,7 @@ true
         }
       },
       nReturned: Long('1'),
-      executionTimeMillisEstimate: Long('25')
+      executionTimeMillisEstimate: Long('34')
     },
     {
       '$set': {
@@ -425,7 +425,7 @@ true
         }
       },
       nReturned: Long('1'),
-      executionTimeMillisEstimate: Long('25')
+      executionTimeMillisEstimate: Long('34')
     },
     {
       '$set': {
@@ -434,20 +434,20 @@ true
             '$const': 30
           },
           from: {
-            '$const': ISODate('2026-08-05T02:29:34.997Z')
+            '$const': ISODate('2026-08-05T13:33:17.513Z')
           },
           to: {
-            '$const': ISODate('2026-09-04T02:29:34.999Z')
+            '$const': ISODate('2026-09-04T13:33:17.515Z')
           }
         }
       },
       nReturned: Long('1'),
-      executionTimeMillisEstimate: Long('25')
+      executionTimeMillisEstimate: Long('34')
     }
   ],
   queryShapeHash: 'C220583A3EAFD27770FE5BC808779FF6E0F2897444FE87E84B22B207D3AA0F69',
   serverInfo: {
-    host: '0f3c58accfdb',
+    host: '22bc746abe3f',
     port: 27017,
     version: '8.2.12',
     gitVersion: '0f912e80210b8fdfdcec618b14b6c0fced055cb8'
@@ -470,7 +470,7 @@ true
       {
         '$match': {
           created_at: {
-            '$gte': ISODate('2026-08-05T02:29:34.997Z')
+            '$gte': ISODate('2026-08-05T13:33:17.513Z')
           }
         }
       },
@@ -661,7 +661,7 @@ true
         '$set': {
           window: {
             days: 30,
-            from: ISODate('2026-08-05T02:29:34.997Z'),
+            from: ISODate('2026-08-05T13:33:17.513Z'),
             to: '$$NOW'
           }
         }
