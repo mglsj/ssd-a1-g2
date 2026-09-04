@@ -10,7 +10,7 @@ Assignment 1 - Database Design
 
 **Team Members:**
 - Anirudh Bandi [2026201058]
-- Dhruv Bhuva []
+- Dhruv Bhuva [2026201036]
 - Lakshyajeet Singh Jalal [2026201063]
 - Thejas Gowda [2026201023]
 
